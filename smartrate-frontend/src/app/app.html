@@ -1,0 +1,126 @@
+<div class="container-fluid px-3 py-2">
+
+  <!-- ============ HEADER ============ -->
+  <div class="d-flex justify-content-between align-items-center border-bottom border-3 border-secondary-subtle pb-2 mb-3">
+    <h4 class="mb-0 fw-bold">🛎 SMART-RATE SYNC <small class="text-muted fw-normal">(Mini-Temairazu Site Controller)</small></h4>
+    <span class="badge bg-dark fs-6">Status: 3 Channels Live</span>
+  </div>
+
+  @if (grid() === null) {
+    @if (loading()) {
+      <div class="alert alert-info">Loading the control grid…</div>
+    }
+  }
+
+  <!-- ============ SIMULATOR BAR ============ -->
+  <div class="card mb-3">
+    <div class="card-body py-2">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <label class="small fw-semibold text-muted mb-0">SIMULATOR BAR:</label>
+
+        <select class="form-select w-auto" [attr.aria-label]="'Channel'" (change)="selectChannel($event)">
+          @for (channel of channelOptions; track channel) {
+            <option [value]="channel">{{ channel }}</option>
+          }
+        </select>
+
+        <select class="form-select w-auto" aria-label="Room type" (change)="selectRoom($event)">
+          @for (room of grid()?.room_types ?? []; track room.id) {
+            <option [selected]="room.id === selRoomId()" [value]="room.id">{{ room.name }}</option>
+          }
+        </select>
+
+        <select class="form-select w-auto" aria-label="Check-in date" (change)="selectDate($event)">
+          @for (day of grid()?.days ?? []; track day) {
+            <option [selected]="day === selDate()" [value]="day">{{ dayLabel(day) }}</option>
+          }
+        </select>
+
+        <button class="btn btn-outline-primary" [disabled]="firing()" (click)="fireBooking()">⚡ Fire Booking</button>
+        <button class="btn btn-danger" [disabled]="firing()" (click)="fireRace()">🔥 Fire 2x Concurrent</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 7-DAY MATRIX ============ -->
+  <div class="card mb-3">
+    <div class="card-header py-1 small fw-semibold">7-DAY INVENTORY &amp; DYNAMIC YIELD MATRIX <span class="text-muted fw-normal">(Click any price to inline-edit)</span></div>
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="twelve-width">Room Type</th>
+            @for (day of grid()?.days ?? []; track day) {
+              <th class="text-center remaining-width">{{ dayLabel(day) }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (room of grid()?.room_types ?? []; track room.id) {
+            <tr>
+              <td class="twelve-width">
+                <div class="fw-semibold">{{ room.name }}</div>
+                <div class="text-muted small">(Base: {{ yen(room.base_price) }})</div>
+              </td>
+              @for (day of grid()?.days ?? []; track day) {
+                <td class="text-center price-cell" [class.table-secondary]="room.inventories[day] === undefined" (click)="startEdit(room, day)">
+                  @if (room.inventories[day]; as inv) {
+                    <span class="badge {{ badgeClass(inv.available_count) }} badge-room-count">
+                      {{ countEmoji(inv.available_count) }}
+                      @if (inv.available_count > 0) {
+                        {{ inv.available_count }} left
+                      } @else {
+                        SOLD OUT
+                      }
+                    </span>
+                    <div class="mt-1">
+                      @if (isEditing(room.id, day)) {
+                        <input
+                          class="form-control form-control-sm text-center"
+                          type="number"
+                          min="0"
+                          [value]="draftPrice()"
+                          (input)="onDraftPrice($event)"
+                          (keyup.enter)="saveEdit(room, day)"
+                          (keyup.escape)="cancelEdit()"
+                          (blur)="saveEdit(room, day)"
+                        />
+                      } @else {
+                        <span>{{ yen(inv.current_price) }}</span>
+                        @if (inv.is_surge_active) {
+                          <span class="surge-flag" title="+20% surge active">⚡</span><br/>
+                          <span class="small surge-flag">⚡ +20% Surge Active</span>
+                        }
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-muted small">—</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ AUDIT LOG ============ -->
+  <div class="card">
+    <div class="card-header py-1 small fw-semibold">LIVE OTA CHANNEL SYNC AUDIT LOG</div>
+    <ul class="list-group list-group-flush" style="max-height: 260px; overflow-y: auto;">
+      @for (entry of audit(); track entry.id) {
+        <li class="list-group-item small font-monospace text-nowrap overflow-x-auto">
+          <span class="{{ entry.badgeClass }} fw-bold">{{ entry.badge }}</span>
+          {{ entry.text }}
+          @if (entry.suffix) {
+            <span class="text-muted">{{ entry.suffix }}</span>
+          }
+        </li>
+      } @empty {
+        <li class="list-group-item small text-muted">No sync activity yet — fire a booking or override a price.</li>
+      }
+    </ul>
+  </div>
+
+</div>

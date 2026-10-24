@@ -1,0 +1,28 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+auth.json
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+dist/
+build/
+.angular/
+.vite/
+public/hot/
+public/storage/
+public/build/
+
+# Logs
+*.log
+.phpunit.result.cache
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

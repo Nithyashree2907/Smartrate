@@ -1,0 +1,33 @@
+/* Bootstrap 5 global styles for the SmartRate Sync dashboard. */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+body {
+  background-color: #f4f6f9;
+}
+
+.badge-room-count {
+  font-size: 0.95rem;
+}
+
+.surge-flag {
+  color: #e07b00;
+  font-weight: 600;
+}
+
+.price-cell {
+  cursor: pointer;
+}
+
+.price-cell:hover {
+  background-color: #eef4ff;
+}
+
+.twelve-width {
+  min-width: 220px;
+  width: 220px;
+}
+
+.remaining-width {
+  min-width: 132px;
+  width: 132px;
+}
